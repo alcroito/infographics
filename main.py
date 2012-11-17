@@ -254,48 +254,16 @@ class MainWindow(QtGui.QMainWindow):
 
     def initGrab(self):
         start = time.clock()
-        buffer = QtCore.QBuffer()
-        buffer.open(QtCore.QIODevice.ReadWrite)
-        image_qt = QtGui.QPixmap.grabWidget(self.view)
-        image_qt.save(buffer, "PNG")
-
-        import cStringIO
-        strio = cStringIO.StringIO()
-        strio.write(buffer.data())
-        buffer.close()
-        strio.seek(0)
-        from PIL import Image
-        image = Image.open(strio)
 
 
         elapsed = time.clock()
         elapsed -= start
-        print "Time spent in (Qt image grab) is: %0.3f ms\n" % (elapsed * 1000)
+        #print "Time spent in (Qt image grab) is: %0.3f ms\n" % (elapsed * 1000)
 
-        #print image_qt
-        #image_qt_size = (image_qt.size().width(), image_qt.size().height())
-
-        #image = ImageGrab.grab(self.geometry)
-        #cv_im = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 4)
+        image = ImageGrab.grab(self.geometry)
         cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
 
         cv.SetData(cv_im, image.tostring())
-
-        #bits = image_qt.toImage().rgbSwapped().bits()
-        #cv.SetData(cv_im, bits.asstring(bits.numBytes()))
-
-
-        #new_image = cv.CreateImage(cv.GetSize(cv_im), cv.IPL_DEPTH_8U, 3)
-        #cv.ConvertImage(cv_im, new_image, 0)
-        #import cv2
-        #mat = cv.GetMat(new_image)
-        #import numpy as np
-
-        #cv2.imshow('', np.asarray(mat))
-        #cv.CvtColor(new_image, new_image, cv.CV_RGB2BGR)
-
-        #print cv_im, new_image
-        #cv_im = cv.LoadImage("myimage.png")
 
         fourcc = cv.CV_FOURCC('D','I','V','X')
         fps = 15
@@ -307,7 +275,7 @@ class MainWindow(QtGui.QMainWindow):
         cv.WriteFrame(self.writer, cv_im)
         elapsed = time.time()
         elapsed -= start
-        print "Time spent in (Write Frame) is:%0.3f ms \n" % (elapsed * 1000)
+        #print "Time spent in (Write Frame) is:%0.3f ms \n" % (elapsed * 1000)
 
         self.frames_count = 1
 
@@ -338,50 +306,19 @@ class MainWindow(QtGui.QMainWindow):
 
     def grabFrame(self):
 
-#        start = time.clock()
-#        image = ImageGrab.grab(self.geometry)
-#        cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
-#        cv.SetData(cv_im, image.tostring())
-#        elapsed = time.clock()
-#        elapsed = elapsed - start
-#        print "Time spent in (PIL image grab) is: %0.3f ms" % elapsed * 1000
-
         start = time.clock()
-        buffer = QtCore.QBuffer()
-        buffer.open(QtCore.QIODevice.ReadWrite)
-        image_qt = QtGui.QPixmap.grabWidget(self.view)
-        image_qt.save(buffer, "PNG")
-
-        import cStringIO
-        strio = cStringIO.StringIO()
-        strio.write(buffer.data())
-        buffer.close()
-        strio.seek(0)
-        from PIL import Image
-        image = Image.open(strio)
-        #image_qt = QtGui.QPixmap.grabWidget(self.view)
-        #image_qt.save("myimage.png")
-        elapsed = time.clock()
-        elapsed = elapsed - start
-        print "Time spent in (Qt image grab) is: %0.3f ms\n" % elapsed * 1000
-
-        #print image_qt
-        #image_qt_size = (image_qt.size().width(), image_qt.size().height())
-
-        #image = ImageGrab.grab(self.geometry)
+        image = ImageGrab.grab(self.geometry)
         cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
         cv.SetData(cv_im, image.tostring())
-        #bits = image_qt.toImage().bits().asstring(image_qt.toImage().numBytes())
-        #cv.SetData(cv_im, bits)
-        #print cv_im
+        elapsed = time.clock()
+        elapsed = elapsed - start
+        #print "Time spent in (PIL image grab) is: %0.3f ms" % elapsed * 1000
 
-        #print cv_im
-        #cv_im = cv.LoadImage("myimage.png")
         start = time.time()
         cv.WriteFrame(self.writer, cv_im)
         elapsed = time.time()
         elapsed = elapsed - start
-        print "Time spent in (Write Frame) is:%0.3f ms " % elapsed * 1000
+        #print "Time spent in (Write Frame) is:%0.3f ms " % elapsed * 1000
 
         self.frames_count += 1
         print self.frames_count
