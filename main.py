@@ -42,7 +42,10 @@
 
 
 from PyQt4 import QtCore, QtGui, QtNetwork, QtWebKit, QtOpenGL
+from PIL import ImageGrab
+from cv2 import cv
 
+import time
 import jquery_rc
 
 class MainWindow(QtGui.QMainWindow):
@@ -67,8 +70,9 @@ class MainWindow(QtGui.QMainWindow):
         self.view.setOptimizationFlags(QtGui.QGraphicsView.DontSavePainterState)
         self.view.setFrameShape(QtGui.QFrame.NoFrame)
         self.view.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
+        self.view.resize(1024, 768)
 
-        #self.view.setSceneRect(QtCore.QRectF(0, 0, 400, 400))
+        self.view.setSceneRect(QtCore.QRectF(0, 0, 640, 480))
         #self.view.set
 
         self.view.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
@@ -80,6 +84,7 @@ class MainWindow(QtGui.QMainWindow):
         # Graphics web view
         self.fast_view = QtWebKit.QGraphicsWebView()
         #self.fast_view.page().setViewportSize(QtCore.QSize(600, 600))
+        self.fast_view.resize(1024, 768)
         self.settings = self.fast_view.settings()
         self.settings.setAttribute(QtWebKit.QWebSettings.AcceleratedCompositingEnabled, True)
         self.settings.setAttribute(QtWebKit.QWebSettings.WebGLEnabled, True)
@@ -111,11 +116,22 @@ class MainWindow(QtGui.QMainWindow):
         toolBar.addAction(self.fast_view.pageAction(QtWebKit.QWebPage.Stop))
         toolBar.addWidget(self.locationEdit)
 
+
         # Menu bar
         viewMenu = self.menuBar().addMenu("&View")
         viewSourceAction = QtGui.QAction("Page Source", self)
         viewSourceAction.triggered.connect(self.viewSource)
         viewMenu.addAction(viewSourceAction)
+
+        # Button
+        buttonMenu = self.menuBar().addMenu("&Open Infographic")
+        openAction = QtGui.QAction("Open", self)
+        openAction.triggered.connect(self.openInfographic)
+        buttonMenu.addAction(openAction)
+
+        viewCaptureAction = QtGui.QAction("Capture", self)
+        viewCaptureAction.triggered.connect(self.initGrab)
+        buttonMenu.addAction(viewCaptureAction)
 
         #
         effectMenu = self.menuBar().addMenu("&Effect")
@@ -158,6 +174,18 @@ class MainWindow(QtGui.QMainWindow):
 
     def adjustLocation(self):
         self.locationEdit.setText(self.fast_view.url().toString())
+
+    def openInfographic(self):
+        new_url = QtCore.QUrl.fromLocalFile("D:/Web/infographics/bartaz/test2.html")
+        self.fast_view.load(new_url)
+        self.fast_view.setFocus()
+
+        position_start = self.view.mapToGlobal(self.view.pos())
+        position_end = position_start + QtCore.QPoint(600, 400)
+        self.geometry = (position_start.x(), position_start.y(), position_end.x(), position_end.y())
+        print self.geometry
+
+        #self.grabFrame()
 
     def changeLocation(self):
         url = QtCore.QUrl.fromUserInput(self.locationEdit.text())
@@ -224,19 +252,139 @@ class MainWindow(QtGui.QMainWindow):
         code = "$('embed').remove()"
         self.fast_view.page().mainFrame().evaluateJavaScript(code)
 
+    def initGrab(self):
+        start = time.clock()
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QIODevice.ReadWrite)
+        image_qt = QtGui.QPixmap.grabWidget(self.view)
+        image_qt.save(buffer, "PNG")
+
+        import cStringIO
+        strio = cStringIO.StringIO()
+        strio.write(buffer.data())
+        buffer.close()
+        strio.seek(0)
+        from PIL import Image
+        image = Image.open(strio)
+
+
+        elapsed = time.clock()
+        elapsed -= start
+        print "Time spent in (Qt image grab) is: %0.3f ms\n" % (elapsed * 1000)
+
+        #print image_qt
+        #image_qt_size = (image_qt.size().width(), image_qt.size().height())
+
+        #image = ImageGrab.grab(self.geometry)
+        #cv_im = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 4)
+        cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
+
+        cv.SetData(cv_im, image.tostring())
+
+        #bits = image_qt.toImage().rgbSwapped().bits()
+        #cv.SetData(cv_im, bits.asstring(bits.numBytes()))
+
+
+        #new_image = cv.CreateImage(cv.GetSize(cv_im), cv.IPL_DEPTH_8U, 3)
+        #cv.ConvertImage(cv_im, new_image, 0)
+        #import cv2
+        #mat = cv.GetMat(new_image)
+        #import numpy as np
+
+        #cv2.imshow('', np.asarray(mat))
+        #cv.CvtColor(new_image, new_image, cv.CV_RGB2BGR)
+
+        #print cv_im, new_image
+        #cv_im = cv.LoadImage("myimage.png")
+
+        fourcc = cv.CV_FOURCC('D','I','V','X')
+        fps = 15
+        width, height = cv.GetSize(cv_im)
+        #print width, height
+        self.writer = cv.CreateVideoWriter('out3.avi', int(fourcc), fps, (int(width), int(height)), 1)
+
+        start = time.time()
+        cv.WriteFrame(self.writer, cv_im)
+        elapsed = time.time()
+        elapsed -= start
+        print "Time spent in (Write Frame) is:%0.3f ms \n" % (elapsed * 1000)
+
+        self.frames_count = 1
+
+        timer = QtCore.QTimer()
+        time_interval = 1000 / 15
+        timer.setInterval(time_interval)
+        timer.timeout.connect(self.grabFrame)
+        timer.start()
+        self.timer = timer
+
+        #secondtimer = QtCore.QTimer()
+        #secondtimer.setInterval(100)
+        #secondtimer.timeout.connect(self.printNumberOfFrames)
+        #secondtimer.start()
+
+        #stopTimer = QtCore.QTimer()
+        #stopTimer.setInterval(2000)
+        #stopTimer.timeout.connect(self.stopCapture)
+        #stopTimer.setSingleShot(True)
+        #stopTimer.start()
+
+    def printNumberOfFrames(self):
+        print "Number of frames", self.frames_count
+        self.frames_count = 0
+
+    def stopCapture(self):
+        self.timer.stop()
+
     def grabFrame(self):
-        pass
-        #from PIL import ImageGrab
-        #from cv2 import cv
-        #ImageGrab.grab().tostring()
 
-        #writer = cv.CreateVideoWriter('ok.mov', int(fourcc), fps, (int(width), int(height)), 1)
-            #print writer
-        #    frame = cv.QueryFrame(capture)
-        #    print frame
-        ##    if frame:
-          #      cv.WriteFrame(writer, frame)
+#        start = time.clock()
+#        image = ImageGrab.grab(self.geometry)
+#        cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
+#        cv.SetData(cv_im, image.tostring())
+#        elapsed = time.clock()
+#        elapsed = elapsed - start
+#        print "Time spent in (PIL image grab) is: %0.3f ms" % elapsed * 1000
 
+        start = time.clock()
+        buffer = QtCore.QBuffer()
+        buffer.open(QtCore.QIODevice.ReadWrite)
+        image_qt = QtGui.QPixmap.grabWidget(self.view)
+        image_qt.save(buffer, "PNG")
+
+        import cStringIO
+        strio = cStringIO.StringIO()
+        strio.write(buffer.data())
+        buffer.close()
+        strio.seek(0)
+        from PIL import Image
+        image = Image.open(strio)
+        #image_qt = QtGui.QPixmap.grabWidget(self.view)
+        #image_qt.save("myimage.png")
+        elapsed = time.clock()
+        elapsed = elapsed - start
+        print "Time spent in (Qt image grab) is: %0.3f ms\n" % elapsed * 1000
+
+        #print image_qt
+        #image_qt_size = (image_qt.size().width(), image_qt.size().height())
+
+        #image = ImageGrab.grab(self.geometry)
+        cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
+        cv.SetData(cv_im, image.tostring())
+        #bits = image_qt.toImage().bits().asstring(image_qt.toImage().numBytes())
+        #cv.SetData(cv_im, bits)
+        #print cv_im
+
+        #print cv_im
+        #cv_im = cv.LoadImage("myimage.png")
+        start = time.time()
+        cv.WriteFrame(self.writer, cv_im)
+        elapsed = time.time()
+        elapsed = elapsed - start
+        print "Time spent in (Write Frame) is:%0.3f ms " % elapsed * 1000
+
+        self.frames_count += 1
+        print self.frames_count
 
 if __name__ == '__main__':
 
