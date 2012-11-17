@@ -61,51 +61,49 @@ class MainWindow(QtGui.QMainWindow):
 
         QtNetwork.QNetworkProxyFactory.setUseSystemConfiguration(True)
 
-        #self.view = QtWebKit.QWebView(self)
-
+        # Graphics view
         self.view = QtGui.QGraphicsView()
-
-        self.view.setViewportUpdateMode(QtGui.QGraphicsView.FullViewportUpdate)
+        self.view.setViewportUpdateMode(QtGui.QGraphicsView.MinimalViewportUpdate)
         self.view.setOptimizationFlags(QtGui.QGraphicsView.DontSavePainterState)
         self.view.setFrameShape(QtGui.QFrame.NoFrame)
-        self.view.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        self.view.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
 
-        
+        #self.view.setSceneRect(QtCore.QRectF(0, 0, 400, 400))
+        #self.view.set
 
+        self.view.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
+
+        # Graphics scene
         self.scene = QtGui.QGraphicsScene()
         self.view.setScene(self.scene)
 
+        # Graphics web view
         self.fast_view = QtWebKit.QGraphicsWebView()
+        #self.fast_view.page().setViewportSize(QtCore.QSize(600, 600))
         self.settings = self.fast_view.settings()
         self.settings.setAttribute(QtWebKit.QWebSettings.AcceleratedCompositingEnabled, True)
         self.settings.setAttribute(QtWebKit.QWebSettings.WebGLEnabled, True)
         self.settings.setAttribute(QtWebKit.QWebSettings.PluginsEnabled, True)
 
+        # GL widget for QGraphicsView
         self.qglwidget = QtOpenGL.QGLWidget()
-        self.fast_view.page().setView(self.qglwidget)
-
-
+        self.view.setViewport(self.qglwidget)
         self.scene.addItem(self.fast_view)
 
-
-
-#        self.proxy = QtGui.QGraphicsProxyWidget()
-#        self.proxy.setWidget(self.view)
-#        self.view_port = QtGui.QGraphicsView(self)
-#        self.view_port.setViewport(QtOpenGL.QGLWidget())
-
-
+        # Connect progressions
         self.fast_view.load(url)
         self.fast_view.loadFinished.connect(self.adjustLocation)
         self.fast_view.titleChanged.connect(self.adjustTitle)
         self.fast_view.loadProgress.connect(self.setProgress)
         self.fast_view.loadFinished.connect(self.finishLoading)
 
+        # Location
         self.locationEdit = QtGui.QLineEdit(self)
         self.locationEdit.setSizePolicy(QtGui.QSizePolicy.Expanding,
                 self.locationEdit.sizePolicy().verticalPolicy())
         self.locationEdit.returnPressed.connect(self.changeLocation)
 
+        # Toolbar
         toolBar = self.addToolBar("Navigation")
         toolBar.addAction(self.fast_view.pageAction(QtWebKit.QWebPage.Back))
         toolBar.addAction(self.fast_view.pageAction(QtWebKit.QWebPage.Forward))
@@ -113,11 +111,13 @@ class MainWindow(QtGui.QMainWindow):
         toolBar.addAction(self.fast_view.pageAction(QtWebKit.QWebPage.Stop))
         toolBar.addWidget(self.locationEdit)
 
+        # Menu bar
         viewMenu = self.menuBar().addMenu("&View")
         viewSourceAction = QtGui.QAction("Page Source", self)
         viewSourceAction.triggered.connect(self.viewSource)
         viewMenu.addAction(viewSourceAction)
 
+        #
         effectMenu = self.menuBar().addMenu("&Effect")
         effectMenu.addAction("Highlight all links", self.highlightAllLinks)
 
@@ -136,6 +136,8 @@ class MainWindow(QtGui.QMainWindow):
                 self.removeObjectElements)
         toolsMenu.addAction("Remove all embedded elements",
                 self.removeEmbeddedElements)
+
+
         self.setCentralWidget(self.view)
         self.setUnifiedTitleAndToolBarOnMac(True)
 
@@ -175,8 +177,8 @@ class MainWindow(QtGui.QMainWindow):
     def finishLoading(self):
         self.progress = 100
         self.adjustTitle()
-        self.fast_view.page().mainFrame().evaluateJavaScript(self.jQuery)
-        self.rotateImages(self.rotateAction.isChecked())
+        #self.fast_view.page().mainFrame().evaluateJavaScript(self.jQuery)
+        #self.rotateImages(self.rotateAction.isChecked())
 
     def highlightAllLinks(self):
         code = """$('a').each(
@@ -223,9 +225,10 @@ class MainWindow(QtGui.QMainWindow):
         self.fast_view.page().mainFrame().evaluateJavaScript(code)
 
     def grabFrame(self):
-        from PIL import ImageGrab
-        from cv2 import cv
-        ImageGrab.grab().tostring()
+        pass
+        #from PIL import ImageGrab
+        #from cv2 import cv
+        #ImageGrab.grab().tostring()
 
         #writer = cv.CreateVideoWriter('ok.mov', int(fourcc), fps, (int(width), int(height)), 1)
             #print writer
@@ -241,11 +244,14 @@ if __name__ == '__main__':
 
     app = QtGui.QApplication(sys.argv)
 
-    if len(sys.argv) > 1:
-        url = QtCore.QUrl(sys.argv[1])
-    else:
-        url = QtCore.QUrl('http://www.google.com/ncr')
+    #if len(sys.argv) > 1:
+    #    url = QtCore.QUrl(sys.argv[1])
+    #else:
+    #    url = QtCore.QUrl('http://www.google.com/ncr')
 
+    #url = QtCore.QUrl.fromLocalFile("D:/Web/infographics/bartaz/test2.html")
+
+    url = QtCore.QUrl()
     browser = MainWindow(url)
     browser.show()
 
