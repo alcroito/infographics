@@ -1,5 +1,6 @@
 from PyQt4 import QtCore, QtGui, QtNetwork, QtWebKit, QtOpenGL
 import InfoMotion
+import grabber
 import sys
 import pickle
 
@@ -14,23 +15,24 @@ class Slide(object):
 class AnimationEffect(object):
     presets = {}
     def __init__(self):
+        self.rotation = 0
         self.rotation_x = 0
         self.rotation_y = 0
         self.translation_x = 0
         self.translation_y = 0
         self.translation_z = 0
-        self.zoom = 0
+        self.zoom = 1
 
     @staticmethod
     def initPresets():
         effect = AnimationEffect()
-        effect.rotation_x = 90
-        effect.translation_x = 1000
+        effect.rotation = 90
+        effect.translation_x = 100
         AnimationEffect.presets['Rotate and translate'] = effect
 
         effect = AnimationEffect()
-        effect.rotation_y = 180
-        effect.translation_y = 500
+        effect.rotation = 180
+        effect.translation_y = 200
         AnimationEffect.presets['Rotate and translate 2'] = effect
 
 
@@ -41,6 +43,7 @@ class MainWindow(QtGui.QMainWindow):
         self.ui = InfoMotion.Ui_MainWindow()
         self.ui.setupUi(self)
         self.file_path = "info_graphic.txt"
+        self.grabber = None
 
         self.slides = {}
         self.slides_by_name = {}
@@ -57,10 +60,15 @@ class MainWindow(QtGui.QMainWindow):
         # Connect events
         self.ui.addFrameButton.clicked.connect(self.addNewSlide)
         self.ui.framelist_navigatorView.currentItemChanged.connect(self.selectedSlideChanged)
-        self.ui.load_image.clicked.connect(self.loadImageIntoTextArea)
+        self.ui.load_image.clicked.connect(self.loadImageIntoTextAreaPlain)
+        self.ui.save_html.clicked.connect(self.generateInfoGraphicString)
+        self.ui.save_video.clicked.connect(self.recordVideo)
 
         # Load info graphic from file
-        self.readFromFile(self.file_path)
+        try:
+            self.readFromFile(self.file_path)
+        except IOError:
+            pass
 
         # Add first slide and select it if its a new file
         if self.last_slide_count == 1:
@@ -69,15 +77,32 @@ class MainWindow(QtGui.QMainWindow):
         else:
             self.ui.framelist_navigatorView.setCurrentRow(0)
 
+    def recordVideo(self):
+        url = QtCore.QUrl(QtCore.QString("./%1").arg("demo.html"))
+        if not self.grabber:
+            self.grabber = grabber.GrabberWindow(url)
+        self.grabber.show()
+
+
+    def getTextFromContent(self):
+        text = self.ui.content_edit.toPlainText()
+        return text
+        #return self.ui.content_edit.toHtml()
 
     def closeEvent(self, *args, **kwargs):
         self.saveToFile(self.file_path)
+
+    def saveCurrentSlide(self):
+        slide = self.getCurrentSlide()
+        slide.html = self.getTextFromContent()
+        slide.duration = self.ui.timeout.value()
+        slide.effect = self.ui.comboBox.currentText()
 
     def selectedSlideChanged(self, current, previous):
         # Save previous slide info
         if previous:
             slide = self.slides_by_name[previous.text()]
-            slide.html = self.ui.content_edit.toHtml()
+            slide.html = self.getTextFromContent()
             slide.duration = self.ui.timeout.value()
             slide.effect = self.ui.comboBox.currentText()
 
@@ -107,6 +132,14 @@ class MainWindow(QtGui.QMainWindow):
         item = self.ui.framelist_navigatorView.currentItem()
         return self.slides_by_name[item.text()]
 
+    def loadImageIntoTextAreaPlain(self):
+        image_path = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open Image"),
+                    "", self.tr("Image Files (*.png *.jpg *.bmp)"))
+        url = QtCore.QUrl(QtCore.QString("file://%1").arg(image_path))
+        cursor = self.ui.content_edit.textCursor()
+        img_tag = '\n<img src="{0}" />\n'.format(image_path)
+        cursor.insertText(img_tag)
+
     def loadImageIntoTextArea(self):
         image_path = QtGui.QFileDialog.getOpenFileName(self, self.tr("Open Image"),
             "", self.tr("Image Files (*.png *.jpg *.bmp)"))
@@ -124,7 +157,7 @@ class MainWindow(QtGui.QMainWindow):
         cursor.insertImage(imageFormat)
 
         slide = self.getCurrentSlide()
-        slide.html = self.ui.content_edit.toHtml()
+        slide.html = self.getTextFromContent()
 
     def saveToFile(self, path):
         with open(path, 'w') as f:
@@ -147,7 +180,38 @@ class MainWindow(QtGui.QMainWindow):
             self.updateWidgetsAfterLoad()
 
     def generateInfoGraphicString(self):
-        pass
+        self.saveCurrentSlide()
+        with open('template.html', 'r') as f:
+            template = f.read()
+            content = self.generateToken()
+            final_file = template.replace("[content-token]", content)
+        with open('export.html', 'w') as f:
+            f.write(final_file)
+
+    def replaceSpaces(self, name):
+        return name.replace(" ", "-")
+    def generateToken(self):
+        slides = []
+        x, y, z = 0, 0, 0
+        for key, slide in self.slides_by_name.items():
+            effect = AnimationEffect.presets[str(slide.effect)]
+            x += effect.translation_x
+            y += effect.translation_y
+            z += effect.translation_z
+            one_slide = []
+            one_slide.append('<div id="{0}" class="step" data-x="{1}" data-y="{2}" '
+                             'data-z="{3}" data-rotate-x="{4}" data-rotate-y="{5}" data-scale="{6}" data-rotate="{7}">'.format(
+                self.replaceSpaces(slide.name),
+                x, y, z,
+                effect.rotation_x, effect.rotation_y, effect.zoom,
+                effect.rotation
+            ))
+            #print slide.html
+            one_slide.append(str(slide.html))
+            one_slide.append("</div>\n\n")
+            slides.append(''.join(one_slide))
+        return ''.join(slides)
+
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
