@@ -109,13 +109,13 @@
      <string>Frame Content</string>
     </property>
    </widget>
-   <widget class="QListView" name="framelist_navigatorView">
+   <widget class="QListWidget" name="framelist_navigatorView">
     <property name="geometry">
      <rect>
       <x>610</x>
       <y>30</y>
       <width>181</width>
-      <height>511</height>
+      <height>471</height>
      </rect>
     </property>
    </widget>
@@ -132,33 +132,11 @@
      <string>Frame Navigator</string>
     </property>
    </widget>
-   <widget class="QLabel" name="frame_nr_">
-    <property name="geometry">
-     <rect>
-      <x>620</x>
-      <y>70</y>
-      <width>151</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="cursor">
-     <cursorShape>PointingHandCursor</cursorShape>
-    </property>
-    <property name="frameShape">
-     <enum>QFrame::NoFrame</enum>
-    </property>
-    <property name="frameShadow">
-     <enum>QFrame::Plain</enum>
-    </property>
-    <property name="text">
-     <string>Frame N</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="addFrameButton">
     <property name="geometry">
      <rect>
       <x>660</x>
-      <y>40</y>
+      <y>510</y>
       <width>75</width>
       <height>23</height>
      </rect>
