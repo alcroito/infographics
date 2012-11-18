@@ -78,7 +78,7 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.framelist_navigatorView.setCurrentRow(0)
 
     def recordVideo(self):
-        url = QtCore.QUrl(QtCore.QString("./%1").arg("demo.html"))
+        url = QtCore.QUrl(QtCore.QString("./%1").arg("export.html"))
         total_time = 0
         for key, slide in self.slides.items():
             total_time += slide.duration

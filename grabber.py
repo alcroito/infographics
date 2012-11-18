@@ -90,7 +90,7 @@ class GrabberWindow(QtGui.QMainWindow):
         fps = 25
         width, height = cv.GetSize(cv_im)
         #print width, height
-        self.writer = cv.CreateVideoWriter('out3.avi', -1, fps, (int(width), int(height)), 1)
+        self.writer = cv.CreateVideoWriter('out3.avi', fourcc, fps, (int(width), int(height)), 1)
 
         cv.WriteFrame(self.writer, cv_im)
 
