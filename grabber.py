@@ -4,13 +4,14 @@ from cv2 import cv
 import time
 
 class GrabberWindow(QtGui.QMainWindow):
-    def __init__(self, url):
+    def __init__(self, url, total_time):
         QtGui.QMainWindow.__init__(self)
 
         self.progress = 0
         self.url = url
+        self.total_time = total_time
         QtNetwork.QNetworkProxyFactory.setUseSystemConfiguration(True)
-        self.setGeometry(QtCore.QRect(200, 50, 1024, 600))
+        self.setGeometry(QtCore.QRect(200, 50, 1024, 700))
 
         # Graphics view
         self.view = QtGui.QGraphicsView()
@@ -20,10 +21,10 @@ class GrabberWindow(QtGui.QMainWindow):
         self.view.setSizePolicy(QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Fixed)
         self.view.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.view.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.view.resize(800, 600)
+        self.view.resize(800, 700)
 
         self.scene_width = 1024
-        self.scene_height = 600
+        self.scene_height = 700
         self.view.setSceneRect(QtCore.QRectF(0, 0, self.scene_width, self.scene_height))
 
         self.view.setRenderHints(QtGui.QPainter.Antialiasing | QtGui.QPainter.SmoothPixmapTransform)
@@ -46,16 +47,24 @@ class GrabberWindow(QtGui.QMainWindow):
         self.view.setViewport(self.qglwidget)
         self.scene.addItem(self.fast_view)
 
-        # Connect progressions
-        #self.fast_view.load(url)
-
-#        viewCaptureAction = QtGui.QAction("Capture", self)
-#        viewCaptureAction.triggered.connect(self.initGrab)
-#        buttonMenu.addAction(viewCaptureAction)
-
         self.setCentralWidget(self.view)
+
+        self.fast_view.loadFinished.connect(self.finishLoading)
         self.openInfographic()
 
+
+
+    def finishLoading(self):
+        self.secondtimer = QtCore.QTimer()
+        self.secondtimer.setInterval(500)
+        self.secondtimer.timeout.connect(self.initGrab)
+        self.secondtimer.setSingleShot(True)
+        self.secondtimer.start()
+
+    def sendKey(self):
+        event = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, QtCore.Qt.Key_Right, QtCore.Qt.NoModifier)
+        QtCore.QCoreApplication.postEvent(self, event)
+        print "sent"
 
     def openInfographic(self):
         new_url = self.url
@@ -63,8 +72,9 @@ class GrabberWindow(QtGui.QMainWindow):
         self.fast_view.setFocus()
         self.fast_view.show()
 
-        position_start = self.view.mapToGlobal(self.view.pos())
-        position_end = position_start + QtCore.QPoint(self.scene_width, self.scene_height - 100)
+        geom = self.view.geometry()
+        position_start = self.mapToGlobal(QtCore.QPoint(0, 0))
+        position_end = position_start + QtCore.QPoint(self.scene_width, self.scene_height - 30)
         self.geometry = (position_start.x(), position_start.y(), position_end.x(), position_end.y())
         print self.geometry
 
@@ -92,16 +102,11 @@ class GrabberWindow(QtGui.QMainWindow):
         timer.start()
         self.timer = timer
 
-        #secondtimer = QtCore.QTimer()
-        #secondtimer.setInterval(100)
-        #secondtimer.timeout.connect(self.printNumberOfFrames)
-        #secondtimer.start()
-
-        #stopTimer = QtCore.QTimer()
-        #stopTimer.setInterval(2000)
-        #stopTimer.timeout.connect(self.stopCapture)
-        #stopTimer.setSingleShot(True)
-        #stopTimer.start()
+        self.stopTimer = QtCore.QTimer()
+        self.stopTimer.setInterval(self.total_time)
+        self.stopTimer.timeout.connect(self.stopCapture)
+        self.stopTimer.setSingleShot(True)
+        self.stopTimer.start()
 
     def printNumberOfFrames(self):
         print "Number of frames", self.frames_count
@@ -109,6 +114,7 @@ class GrabberWindow(QtGui.QMainWindow):
 
     def stopCapture(self):
         self.timer.stop()
+        self.writer = None
 
     def grabFrame(self):
 

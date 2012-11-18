@@ -79,8 +79,12 @@ class MainWindow(QtGui.QMainWindow):
 
     def recordVideo(self):
         url = QtCore.QUrl(QtCore.QString("./%1").arg("demo.html"))
+        total_time = 0
+        for key, slide in self.slides.items():
+            total_time += slide.duration
+        total_time = 10 * 1000
         if not self.grabber:
-            self.grabber = grabber.GrabberWindow(url)
+            self.grabber = grabber.GrabberWindow(url, total_time)
         self.grabber.show()
 
 
@@ -179,12 +183,27 @@ class MainWindow(QtGui.QMainWindow):
             self.last_slide_count = pickle.load(f)
             self.updateWidgetsAfterLoad()
 
+    def createJavascriptTimers(self):
+        timers = []
+        i = 0
+        time_until_now = 0
+        for key, value in self.slides.items():
+            interval = value.duration * 1000 + time_until_now
+            time_until_now += interval
+            i += 1
+            js = 'var timer' + str(i) + ' = window.setTimeout(function(){  impress().next();}, ' + str(interval) + ' );\n'
+            timers.append(js)
+        return ''.join(timers)
+
     def generateInfoGraphicString(self):
         self.saveCurrentSlide()
         with open('template.html', 'r') as f:
             template = f.read()
             content = self.generateToken()
             final_file = template.replace("[content-token]", content)
+            final_file = final_file.replace("[transition-duration]", "2000")
+            final_file = final_file.replace("[javascript-token]", self.createJavascriptTimers())
+
         with open('export.html', 'w') as f:
             f.write(final_file)
 
