@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'InfoMotion.ui'
 #
-# Created: Sat Nov 17 17:14:59 2012
+# Created: Sun Nov 18 10:37:11 2012
 #      by: PyQt4 UI code generator 4.9.5
 #
 # WARNING! All changes made in this file will be lost!
@@ -43,20 +43,15 @@ class Ui_MainWindow(object):
         self.frame_content = QtGui.QLabel(self.centralwidget)
         self.frame_content.setGeometry(QtCore.QRect(180, 10, 81, 16))
         self.frame_content.setObjectName(_fromUtf8("frame_content"))
-        self.framelist_navigatorView = QtGui.QListView(self.centralwidget)
-        self.framelist_navigatorView.setGeometry(QtCore.QRect(610, 30, 181, 511))
+        self.framelist_navigatorView = QtGui.QListWidget(self.centralwidget)
+        self.framelist_navigatorView.setGeometry(QtCore.QRect(610, 30, 181, 471))
         self.framelist_navigatorView.setObjectName(_fromUtf8("framelist_navigatorView"))
         self.frame_navigator = QtGui.QLabel(self.centralwidget)
         self.frame_navigator.setGeometry(QtCore.QRect(610, 10, 91, 16))
         self.frame_navigator.setObjectName(_fromUtf8("frame_navigator"))
-        self.frame_nr_ = QtGui.QLabel(self.centralwidget)
-        self.frame_nr_.setGeometry(QtCore.QRect(620, 70, 151, 21))
-        self.frame_nr_.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-        self.frame_nr_.setFrameShape(QtGui.QFrame.StyledPanel)
-        self.frame_nr_.setObjectName(_fromUtf8("frame_nr_"))
-        self.pushButton = QtGui.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(660, 40, 75, 23))
-        self.pushButton.setObjectName(_fromUtf8("pushButton"))
+        self.addFrameButton = QtGui.QPushButton(self.centralwidget)
+        self.addFrameButton.setGeometry(QtCore.QRect(660, 510, 75, 23))
+        self.addFrameButton.setObjectName(_fromUtf8("addFrameButton"))
         self.splitter = QtGui.QSplitter(self.centralwidget)
         self.splitter.setGeometry(QtCore.QRect(150, 500, 441, 41))
         self.splitter.setOrientation(QtCore.Qt.Horizontal)
@@ -86,8 +81,7 @@ class Ui_MainWindow(object):
         self.transition_effects.setText(QtGui.QApplication.translate("MainWindow", "Transition Effects", None, QtGui.QApplication.UnicodeUTF8))
         self.frame_content.setText(QtGui.QApplication.translate("MainWindow", "Frame Content", None, QtGui.QApplication.UnicodeUTF8))
         self.frame_navigator.setText(QtGui.QApplication.translate("MainWindow", "Frame Navigator", None, QtGui.QApplication.UnicodeUTF8))
-        self.frame_nr_.setText(QtGui.QApplication.translate("MainWindow", "Frame N", None, QtGui.QApplication.UnicodeUTF8))
-        self.pushButton.setText(QtGui.QApplication.translate("MainWindow", "Add Frame", None, QtGui.QApplication.UnicodeUTF8))
+        self.addFrameButton.setText(QtGui.QApplication.translate("MainWindow", "Add Frame", None, QtGui.QApplication.UnicodeUTF8))
         self.preview_button.setText(QtGui.QApplication.translate("MainWindow", "Preview", None, QtGui.QApplication.UnicodeUTF8))
         self.save_html.setText(QtGui.QApplication.translate("MainWindow", "Export to HTML", None, QtGui.QApplication.UnicodeUTF8))
         self.save_video.setText(QtGui.QApplication.translate("MainWindow", "Save VideoMotion", None, QtGui.QApplication.UnicodeUTF8))
