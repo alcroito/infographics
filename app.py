@@ -82,7 +82,7 @@ class MainWindow(QtGui.QMainWindow):
         total_time = 0
         for key, slide in self.slides.items():
             total_time += slide.duration
-        total_time = 10 * 1000
+        total_time = 3 * 1000
         if not self.grabber:
             self.grabber = grabber.GrabberWindow(url, total_time)
         self.grabber.show()

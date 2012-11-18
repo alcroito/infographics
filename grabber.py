@@ -11,7 +11,7 @@ class GrabberWindow(QtGui.QMainWindow):
         self.url = url
         self.total_time = total_time
         QtNetwork.QNetworkProxyFactory.setUseSystemConfiguration(True)
-        self.setGeometry(QtCore.QRect(200, 50, 1024, 700))
+        self.setGeometry(QtCore.QRect(200, 30, 1024, 700))
 
         # Graphics view
         self.view = QtGui.QGraphicsView()
@@ -84,12 +84,13 @@ class GrabberWindow(QtGui.QMainWindow):
         cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
 
         cv.SetData(cv_im, image.tostring())
+        cv.CvtColor(cv_im, cv_im, cv.CV_RGB2BGR)
 
         fourcc = cv.CV_FOURCC('D','I','V','X')
         fps = 25
         width, height = cv.GetSize(cv_im)
         #print width, height
-        self.writer = cv.CreateVideoWriter('out3.avi', int(fourcc), fps, (int(width), int(height)), 1)
+        self.writer = cv.CreateVideoWriter('out3.avi', -1, fps, (int(width), int(height)), 1)
 
         cv.WriteFrame(self.writer, cv_im)
 

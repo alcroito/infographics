@@ -7,7 +7,7 @@
     <link href="css/impress-demo.css" rel="stylesheet" />
 </head>
 <body>
-<div id="impress">
+<div id="impress" data-transition-duration="1000">
 	<div id="title" class="step" data-x="-200" data-y="-200" data-scale="2">
         <span class="try">Animated</span>
         <h1 style="font-size: 140px">infographics</h1>
@@ -48,10 +48,11 @@
 	
 	<div class="step" data-x="-800" data-y="1600" data-rotate="-180" data-scale="1">
         <p>in no time<pre></pre><b>share</b> the video <pre></pre>
-		<img src="D:/Dropbox/GitHub/infographics/gifs/youtube.png" width="100" />
-		<img src="D:/Dropbox/GitHub/infographics/gifs/facebook.png" width="100" />
-		<img src="D:/Dropbox/GitHub/infographics/gifs/google_plus.png" width="100" />
-		<img src="D:/Dropbox/GitHub/infographics/gifs/twitter.png" width="100" /></p>
+		<img src="./gifs/youtube.png" width="100" />
+
+		<img src="./gifs/facebook.png" width="100" />
+		<img src="./gifs/google_plus.png" width="100" />
+		<img src="./gifs/twitter.png" width="100" /></p>
     </div>
 
 	<div id="its-in-3d" class="step" data-x="-800" data-y="1000" data-z="-100" data-rotate="-160" data-rotate-x="-50" data-rotate-y="10" data-scale="2">
@@ -60,6 +61,19 @@
 
 	</div>
 <script src="js/impress.js"></script>
-<script>impress().init();</script>
+<script>
+impress().init();
+var timer1 = window.setTimeout(function(){  impress().next();}, 3000 ); // title
+var timer2 = window.setTimeout(function(){  impress().next();}, 6000 ); // its
+var timer3 = window.setTimeout(function(){  impress().next();}, 8000 ); // tiny
+var timer4 = window.setTimeout(function(){  impress().next();}, 11500 ); // ing
+var timer5 = window.setTimeout(function(){  impress().next();}, 14000 ); // imagination
+var timer6 = window.setTimeout(function(){  impress().next();}, 16000 ); // step 6
+var timer7 = window.setTimeout(function(){  impress().next();}, 17500 ); // step 7
+var timer8 = window.setTimeout(function(){  impress().next();}, 21000 ); // step 8
+var timer9 = window.setTimeout(function(){  impress().next();}, 23000 ); // step 9
+var timer10 = window.setTimeout(function(){  impress().next();}, 25000 ); // step
+var timer11 = window.setTimeout(function(){  impress().next();}, 28000 ); // step
+</script>
 </body>
 </html>
