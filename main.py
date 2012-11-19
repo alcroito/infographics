@@ -46,7 +46,6 @@ from PIL import ImageGrab
 from cv2 import cv
 
 import time
-import jquery_rc
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self, url):
@@ -181,7 +180,8 @@ class MainWindow(QtGui.QMainWindow):
         self.locationEdit.setText(self.fast_view.url().toString())
 
     def openInfographic(self):
-        new_url = QtCore.QUrl.fromLocalFile("D:/Web/infographics/bartaz/test2.html")
+        #new_url = QtCore.QUrl.fromLocalFile("D:/Web/infographics/bartaz/test2.html")
+        new_url = QtCore.QUrl.fromLocalFile("D:/Web/infographics/demo.html")
         self.fast_view.load(new_url)
         self.fast_view.setFocus()
 
@@ -259,16 +259,20 @@ class MainWindow(QtGui.QMainWindow):
 
     def initGrab(self):
         start = time.clock()
-
-
         elapsed = time.clock()
         elapsed -= start
         #print "Time spent in (Qt image grab) is: %0.3f ms\n" % (elapsed * 1000)
 
-        image = ImageGrab.grab(self.geometry)
-        cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
+        image_qt = QtGui.QPixmap.grabWidget(self.view)
+        image_qt_i = image_qt.toImage()
+        i2 = image_qt_i.convertToFormat(QtGui.QImage.Format_RGB888)
+        i3 = i2.rgbSwapped()
+        i3_bits = i3.bits()
+        image_qt_size = (i3.size().width(), i3.size().height())
+        #image = ImageGrab.grab(self.geometry)
+        cv_im = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 3)
 
-        cv.SetData(cv_im, image.tostring())
+        cv.SetData(cv_im, i3_bits.asstring(i3.numBytes()))
 
         fourcc = cv.CV_FOURCC('D','I','V','X')
         fps = 25
@@ -312,21 +316,30 @@ class MainWindow(QtGui.QMainWindow):
     def grabFrame(self):
 
         start = time.clock()
-        image = ImageGrab.grab(self.geometry)
-        cv_im = cv.CreateImageHeader(image.size, cv.IPL_DEPTH_8U, 3)
-        cv.SetData(cv_im, image.tostring())
+        image_qt = QtGui.QPixmap.grabWidget(self.view).toImage()
+        #i2 = image_qt_i.convertToFormat(QtGui.QImage.Format_RGB888)
+        #i3 = i2.rgbSwapped()
+        #i3_bits = i3.bits()
+        #image_qt_size = (i3.size().width(), i3.size().height())
+        #image = ImageGrab.grab(self.geometry)
+        image_qt_size = (image_qt.size().width(), image_qt.size().height())
+        cv_im_4chan = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 4)
+        cv_im = cv.CreateImage(image_qt_size, cv.IPL_DEPTH_8U, 3)
+
+        cv.SetData(cv_im_4chan, image_qt.bits().asstring(image_qt.numBytes()))
+        cv.CvtColor(cv_im_4chan, cv_im, cv.CV_RGBA2RGB)
         elapsed = time.clock()
-        elapsed = elapsed - start
-        #print "Time spent in (PIL image grab) is: %0.3f ms" % elapsed * 1000
+        elapsed -= start
+        #print "Time spent in (Qt image grab) is: %0.3f ms" % elapsed
 
         start = time.time()
         cv.WriteFrame(self.writer, cv_im)
         elapsed = time.time()
         elapsed = elapsed - start
-        #print "Time spent in (Write Frame) is:%0.3f ms " % elapsed * 1000
+       # print "Time spent in (Write Frame) is:%0.3f ms " % elapsed * 1000
 
         self.frames_count += 1
-        print self.frames_count
+        #print self.frames_count
 
 if __name__ == '__main__':
 
