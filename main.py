@@ -317,10 +317,6 @@ class MainWindow(QtGui.QMainWindow):
 
         start = time.clock()
         image_qt = QtGui.QPixmap.grabWidget(self.view).toImage()
-        #i2 = image_qt_i.convertToFormat(QtGui.QImage.Format_RGB888)
-        #i3 = i2.rgbSwapped()
-        #i3_bits = i3.bits()
-        #image_qt_size = (i3.size().width(), i3.size().height())
         #image = ImageGrab.grab(self.geometry)
         image_qt_size = (image_qt.size().width(), image_qt.size().height())
         cv_im_4chan = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 4)

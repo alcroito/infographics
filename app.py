@@ -78,14 +78,15 @@ class MainWindow(QtGui.QMainWindow):
             self.ui.framelist_navigatorView.setCurrentRow(0)
 
     def recordVideo(self):
-        url = QtCore.QUrl(QtCore.QString("./%1").arg("export.html"))
+        #url = QtCore.QUrl(QtCore.QString("./%1").arg("export.html"))
+        url = QtCore.QUrl(QtCore.QString("./%1").arg("demo.html"))
         total_time = 0
         for key, slide in self.slides.items():
             total_time += slide.duration
-        total_time = 3 * 1000
+        total_time = 20 * 1000
         if not self.grabber:
             self.grabber = grabber.GrabberWindow(url, total_time)
-        self.grabber.show()
+        #self.grabber.show()
 
 
     def getTextFromContent(self):

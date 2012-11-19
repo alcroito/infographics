@@ -57,7 +57,7 @@ class GrabberWindow(QtGui.QMainWindow):
     def finishLoading(self):
         self.secondtimer = QtCore.QTimer()
         self.secondtimer.setInterval(500)
-        self.secondtimer.timeout.connect(self.initGrab)
+        self.secondtimer.timeout.connect(self.initGrabQt)
         self.secondtimer.setSingleShot(True)
         self.secondtimer.start()
 
@@ -77,6 +77,48 @@ class GrabberWindow(QtGui.QMainWindow):
         position_end = position_start + QtCore.QPoint(self.scene_width, self.scene_height - 30)
         self.geometry = (position_start.x(), position_start.y(), position_end.x(), position_end.y())
         print self.geometry
+
+    def initGrabQt(self):
+
+        image_qt = QtGui.QPixmap.grabWidget(self.view).toImage()
+        image_qt_size = (image_qt.size().width(), image_qt.size().height())
+
+        cv_im_4chan = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 4)
+        cv_im = cv.CreateImage(image_qt_size, cv.IPL_DEPTH_8U, 3)
+        cv.SetData(cv_im_4chan, image_qt.bits().asstring(image_qt.numBytes()))
+        cv.CvtColor(cv_im_4chan, cv_im, cv.CV_RGBA2RGB)
+
+        fourcc = cv.CV_FOURCC('D','I','V','X')
+        fps = 25
+        width, height = cv.GetSize(cv_im)
+        self.writer = cv.CreateVideoWriter('out3.avi', fourcc, fps, (int(width), int(height)), 1)
+
+        cv.WriteFrame(self.writer, cv_im)
+
+        timer = QtCore.QTimer()
+        time_interval = 1000 / 25
+        timer.setInterval(time_interval)
+        timer.timeout.connect(self.grabFrameQt)
+        timer.start()
+        self.timer = timer
+
+        self.stopTimer = QtCore.QTimer()
+        self.stopTimer.setInterval(self.total_time)
+        self.stopTimer.timeout.connect(self.stopCapture)
+        self.stopTimer.setSingleShot(True)
+        self.stopTimer.start()
+
+    def grabFrameQt(self):
+        image_qt = QtGui.QPixmap.grabWidget(self.view).toImage()
+        image_qt_size = (image_qt.size().width(), image_qt.size().height())
+
+        cv_im_4chan = cv.CreateImageHeader(image_qt_size, cv.IPL_DEPTH_8U, 4)
+        cv_im = cv.CreateImage(image_qt_size, cv.IPL_DEPTH_8U, 3)
+        cv.SetData(cv_im_4chan, image_qt.bits().asstring(image_qt.numBytes()))
+        cv.CvtColor(cv_im_4chan, cv_im, cv.CV_RGBA2RGB)
+
+        cv.WriteFrame(self.writer, cv_im)
+
 
     def initGrab(self):
 
